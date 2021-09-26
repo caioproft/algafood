@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import javax.persistence.*;
 
 @Entity
+@Table(name = "permissao")
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Permissao {

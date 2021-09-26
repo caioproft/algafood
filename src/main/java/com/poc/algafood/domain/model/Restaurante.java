@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "restaurante")
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Restaurante {
