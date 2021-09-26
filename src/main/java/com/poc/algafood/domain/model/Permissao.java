@@ -8,7 +8,7 @@ import javax.persistence.*;
 @Entity
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Estado {
+public class Permissao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,5 +16,8 @@ public class Estado {
     private Long id;
 
     @Column(nullable = false)
-    private String nome;
+    private String  nome;
+
+    @Column(nullable = false)
+    private String descricao;
 }

@@ -15,10 +15,10 @@ public class Cidade {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column
+    @Column(nullable = false)
     private String nome;
 
     @ManyToOne
-    @JoinColumn(name = "estado_id")
+    @JoinColumn(name = "estado_id", nullable = false)
     private Estado estado;
 }
