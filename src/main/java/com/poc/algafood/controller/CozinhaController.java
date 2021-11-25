@@ -36,7 +36,7 @@ public class CozinhaController {
   }
 
   @PostMapping
-  public ResponseEntity<Cozinha> criar(@RequestBody Cozinha cozinha) {
+  public ResponseEntity<?> criar(@RequestBody Cozinha cozinha) {
     try {
 
       Cozinha novaCozinha = service.criar(cozinha);
@@ -44,7 +44,7 @@ public class CozinhaController {
 
     } catch (EntidadeJaCadastradaException ex) {
 
-      return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+      return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ex.getMessage());
     }
   }
 
