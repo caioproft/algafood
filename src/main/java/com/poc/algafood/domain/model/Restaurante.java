@@ -15,26 +15,32 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Restaurante {
 
-  @Id
-  @EqualsAndHashCode.Include
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @EqualsAndHashCode.Include
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Column(nullable = false)
-  private String nome;
+    @Column(nullable = false)
+    private String nome;
 
-  @Column(name = "taxa_frete", nullable = false)
-  private BigDecimal taxafrete;
+    @Column(name = "taxa_frete", nullable = false)
+    private BigDecimal taxafrete;
 
-  @Column private boolean ativo;
+    @Column
+    private boolean ativo;
 
-  @Column private boolean aberto;
+    @Column
+    private boolean aberto;
 
-  @ManyToOne
-  @JoinColumn(name = "cozinha_id")
-  private Cozinha cozinha;
+    @ManyToOne
+    @JoinColumn(name = "cozinha_id")
+    private Cozinha cozinha;
 
-  @Column @CreationTimestamp private LocalDateTime dataCadastro;
+    @Column
+    @CreationTimestamp
+    private LocalDateTime dataCadastro;
 
-  @Column @UpdateTimestamp private LocalDateTime dataAtualizacao;
+    @Column
+    @UpdateTimestamp
+    private LocalDateTime dataAtualizacao;
 }
