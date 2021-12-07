@@ -17,89 +17,98 @@ import org.springframework.util.ReflectionUtils;
 @Service
 public class EstadoService {
 
-    private final EstadoRepository estadoRepository;
+  private final EstadoRepository estadoRepository;
 
-    public EstadoService(EstadoRepository estadoRepository) {
-        this.estadoRepository = estadoRepository;
+  public EstadoService(EstadoRepository estadoRepository) {
+    this.estadoRepository = estadoRepository;
+  }
+
+  public List<Estado> buscarTodos() {
+    List<Estado> estados = estadoRepository.findAll();
+
+    if (estados.isEmpty()) {
+      throw new EntidadeNaoCadastradaException("Não existem estados cadastrados até o momento");
     }
 
-    public List<Estado> buscarTodos() {
-        List<Estado> estados = estadoRepository.findAll();
+    return estados;
+  }
 
-        if (estados.isEmpty()) {
-            throw new EntidadeNaoCadastradaException("Não existem estados cadastrados até o momento");
-        }
+  public Optional<Estado> buscarUmEstado(Long id) {
+    Optional<Estado> estado = estadoRepository.findById(id);
 
-        return estados;
+    if (estado.isPresent()) {
+      return estado;
+    }
+    throw new EntidadeNaoCadastradaException(
+        String.format("Não existe um estado cadastrado com o ID: %d", id));
+  }
+
+  public Estado criarEstado(Estado estado) {
+
+    if (existeEstado(estado)) {
+      throw new EntidadeJaCadastradaException(
+          String.format("O estado %s já está cadastrado no sistema", estado.getNome()));
+    }
+    return estadoRepository.save(estado);
+  }
+
+  private boolean existeEstado(Estado estado) {
+    Optional<Estado> estadoCadastrado = estadoRepository.findByNome(estado.getNome());
+    return estadoCadastrado.isPresent();
+  }
+
+  public Estado atualizar(Long id, Estado estado) {
+    Optional<Estado> estadoSalvo = estadoRepository.findById(id);
+
+    if (estadoSalvo.isPresent()) {
+      BeanUtils.copyProperties(estado, estadoSalvo, "id");
+      estadoRepository.save(estadoSalvo.get());
+      return estadoSalvo.get();
     }
 
-    public Optional<Estado> buscarUmEstado(Long id) {
-        Optional<Estado> estado = estadoRepository.findById(id);
+    throw new EntidadeNaoCadastradaException(
+        String.format("O estado de ID = %d não está cadastrado no sistema", id));
+  }
 
-        if (estado.isPresent()) {
-            return estado;
-        }
-        throw new EntidadeNaoCadastradaException(String.format("Não existe um estado cadastrado com o ID: %d", id));
+  public Estado atualizarParcialment(Long id, Map<String, Object> estadoComAtualizacao) {
+    Optional<Estado> estadoSalvo = estadoRepository.findById(id);
 
+    if (estadoSalvo.isPresent()) {
+
+      ObjectMapper objectMapper = new ObjectMapper();
+      Estado estadoRecebido = objectMapper.convertValue(estadoComAtualizacao, Estado.class);
+
+      estadoComAtualizacao.forEach(
+          (nomePropriedade, valorPropriedade) -> {
+            Field campo =
+                ReflectionUtils.findField(
+                    Estado.class, nomePropriedade); // identifica cada campo a ser atualizado
+            campo.setAccessible(true); // torna o campo acessível por ser privado
+
+            Object valorDoCampo =
+                ReflectionUtils.getField(
+                    campo, estadoRecebido); // busca o valor da propriedade no objeto enviado pela
+            // requisição
+            ReflectionUtils.setField(
+                campo,
+                estadoSalvo,
+                valorDoCampo); // atualiza o valor da propriedade no objeto existente no banco
+          });
+
+      estadoRepository.save(estadoSalvo.get());
+      return estadoSalvo.get();
     }
 
-    public Estado criarEstado(Estado estado) {
+    throw new EntidadeNaoCadastradaException(
+        String.format("O estado de ID = %d não está cadastrado no sistema", id));
+  }
 
-        if (existeEstado(estado)) {
-            throw new EntidadeJaCadastradaException(String.format("O estado %s já está cadastrado no sistema", estado.getNome()));
-        }
-        Estado novoEstado = estadoRepository.save(estado);
-        return novoEstado;
-    }
+  public void excluir(Long id) {
+    Optional<Estado> estadoSalvo = estadoRepository.findById(id);
 
-    private boolean existeEstado(Estado estado) {
-        Optional<Estado> estadoCadastrado = estadoRepository.findByNome(estado.getNome());
-        return estadoCadastrado.isPresent();
-    }
+    estadoSalvo.ifPresent(estadoRepository::delete);
 
-    public Estado atualizar(Long id, Estado estado) {
-        Optional<Estado> estadoSalvo = estadoRepository.findById(id);
-
-        if (estadoSalvo.isPresent()) {
-            BeanUtils.copyProperties(estado, estadoSalvo, "id");
-            estadoRepository.save(estadoSalvo.get());
-            return estadoSalvo.get();
-        }
-
-        throw new EntidadeNaoCadastradaException(String.format("O estado de ID = %d não está cadastrado no sistema", id));
-    }
-
-    public Estado atualizarParcialment(Long id, Map<String, Object> estadoComAtualizacao) {
-        Optional<Estado> estadoSalvo = estadoRepository.findById(id);
-
-        if (estadoSalvo.isPresent()) {
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            Estado estadoRecebido = objectMapper.convertValue(estadoComAtualizacao, Estado.class);
-
-            estadoComAtualizacao.forEach((nomePropriedade, valorPropriedade) -> {
-                Field campo = ReflectionUtils.findField(Estado.class, nomePropriedade); // identifica cada campo a ser atualizado
-                campo.setAccessible(true); // torna o campo acessível por ser privado
-
-                Object valorDoCampo = ReflectionUtils.getField(campo, estadoRecebido); // busca o valor da propriedade no objeto enviado pela requisição
-                ReflectionUtils.setField(campo, estadoSalvo, valorDoCampo); // atualiza o valor da propriedade no objeto existente no banco
-            });
-
-            estadoRepository.save(estadoSalvo.get());
-            return estadoSalvo.get();
-        }
-
-        throw new EntidadeNaoCadastradaException(String.format("O estado de ID = %d não está cadastrado no sistema", id));
-    }
-
-    public void excluir(Long id) {
-        Optional<Estado> estadoSalvo = estadoRepository.findById(id);
-
-        if (estadoSalvo.isPresent()) {
-            estadoRepository.delete(estadoSalvo.get());
-        }
-
-        throw new EntidadeNaoCadastradaException(String.format("O estado de ID = %d não está cadastrado no sistema", id));
-    }
+    throw new EntidadeNaoCadastradaException(
+        String.format("O estado de ID = %d não está cadastrado no sistema", id));
+  }
 }
-
