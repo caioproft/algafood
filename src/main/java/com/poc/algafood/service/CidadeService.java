@@ -3,6 +3,7 @@ package com.poc.algafood.service;
 import com.poc.algafood.domain.model.Cidade;
 import com.poc.algafood.domain.model.Estado;
 import com.poc.algafood.exception.EntidadeJaCadastradaException;
+import com.poc.algafood.exception.EntidadeNaoCadastradaException;
 import com.poc.algafood.exception.InformacaoInvalidaException;
 import com.poc.algafood.repository.CidadeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,12 @@ public class CidadeService {
     private CidadeRepository cidadeRepository;
 
     @Autowired
-    EstadoService estadoService;
+    private EstadoService estadoService;
+
+    private static String ESTADO_NAO_INFORMADO = "Para cadastrar uma cidade é preciso informar um estado";
+    private static String CIDADE_NAO_CADASTRADA = "Não existe uma cidade cadastrada com este ID: %d";
+    private static String CIDADE_JA_CADASTRADA = "Já existe uma cidade cadastrada com estas informações:\n Cidade: %s  Estado: %s";
+
 
     public List<Cidade> buscarCidades() {
         return cidadeRepository.findAll();
@@ -29,14 +35,27 @@ public class CidadeService {
     public Cidade cadastrar(Cidade cidade) {
         Estado estado;
 
-        if (cidade.getEstado().getNome() != null) {
-            estado = estadoService.buscaEstadoOuLancaExcecao(cidade.getEstado().getNome());
-        } else {
-            throw new InformacaoInvalidaException(String.format("Para cadastrar uma cidade é preciso informar um estado"));
+        if (cidade.getEstado().getNome().isEmpty()) {
+            throw new InformacaoInvalidaException(String.format(ESTADO_NAO_INFORMADO));
         }
+        estado = estadoService.buscaEstadoOuLancaExcecao(cidade.getEstado().getNome());
         cidade.getEstado().setId(estado.getId());
         deveCadastarCidadeOuLancarExcecao(cidade);
         return cidadeRepository.save(cidade);
+    }
+
+    public Cidade buscarUma(Long id) {
+        Cidade cidadeSalva = buscaCidadeOuLancaExcecao(id);
+        return cidadeSalva;
+    }
+
+    public void excluir(Long id) {
+        Cidade cidadeSalva = buscaCidadeOuLancaExcecao(id);
+        cidadeRepository.delete(cidadeSalva);
+    }
+
+    private Cidade buscaCidadeOuLancaExcecao(Long id) {
+        return cidadeRepository.findById(id).orElseThrow(() -> new EntidadeNaoCadastradaException(String.format(CIDADE_NAO_CADASTRADA, id)));
     }
 
     private void deveCadastarCidadeOuLancarExcecao(Cidade cidade) {
@@ -45,9 +64,7 @@ public class CidadeService {
 
         if (existeCidade) {
             throw new EntidadeJaCadastradaException(
-                    String.format(
-                            "Já existe uma cidade cadastrada com estas informações. Cidade: %s e Estado: %s",
-                            cidade.getNome(), cidade.getEstado().getNome()));
+                    String.format(CIDADE_JA_CADASTRADA, cidade.getNome(), cidade.getEstado().getNome()));
         }
     }
 }
