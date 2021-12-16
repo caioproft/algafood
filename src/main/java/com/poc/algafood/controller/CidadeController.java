@@ -50,8 +50,15 @@ public class CidadeController {
         }
     }
 
-    @PutMapping
-    public ResponseEntity<?>
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Cidade cidade) {
+
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(cidadeService.atualizar(id, cidade));
+        } catch (EntidadeNaoCadastradaException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> excluir(@PathVariable Long id) {
