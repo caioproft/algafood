@@ -16,58 +16,57 @@ import java.util.List;
 @RequestMapping(path = "/cidades")
 public class CidadeController {
 
-    @Autowired
-    private CidadeService cidadeService;
+  @Autowired private CidadeService cidadeService;
 
-    @GetMapping
-    public ResponseEntity<List<Cidade>> buscarTodas() {
+  @GetMapping
+  public ResponseEntity<List<Cidade>> buscarTodas() {
 
-        return ResponseEntity.status(HttpStatus.OK).body(cidadeService.buscarCidades());
+    return ResponseEntity.status(HttpStatus.OK).body(cidadeService.buscarCidades());
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<?> buscarUma(@PathVariable Long id) {
+
+    try {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cidadeService.buscarUma(id));
+    } catch (EntidadeNaoCadastradaException ex) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+  }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> buscarUma(@PathVariable Long id) {
+  @PostMapping
+  public ResponseEntity<?> cadastrar(@RequestBody Cidade cidade) {
 
-        try {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cidadeService.buscarUma(id));
-        } catch (EntidadeNaoCadastradaException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        }
+    try {
+      cidadeService.cadastrar(cidade);
+      return ResponseEntity.status(HttpStatus.CREATED).body(cidade);
+    } catch (EntidadeJaCadastradaException ex) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    } catch (InformacaoInvalidaException ex) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    } catch (Exception ex) {
+      throw ex;
     }
+  }
 
-    @PostMapping
-    public ResponseEntity<?> cadastrar(@RequestBody Cidade cidade) {
+  @PutMapping("/{id}")
+  public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Cidade cidade) {
 
-        try {
-            cidadeService.cadastrar(cidade);
-            return ResponseEntity.status(HttpStatus.CREATED).body(cidade);
-        } catch (EntidadeJaCadastradaException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        } catch (InformacaoInvalidaException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        } catch (Exception ex) {
-            throw ex;
-        }
+    try {
+      return ResponseEntity.status(HttpStatus.OK).body(cidadeService.atualizar(id, cidade));
+    } catch (EntidadeNaoCadastradaException ex) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+  }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Cidade cidade) {
+  @DeleteMapping("/{id}")
+  public ResponseEntity<?> excluir(@PathVariable Long id) {
 
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(cidadeService.atualizar(id, cidade));
-        } catch (EntidadeNaoCadastradaException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        }
+    try {
+      cidadeService.excluir(id);
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    } catch (EntidadeNaoCadastradaException ex) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> excluir(@PathVariable Long id) {
-
-        try {
-            cidadeService.excluir(id);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (EntidadeNaoCadastradaException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        }
-    }
+  }
 }
