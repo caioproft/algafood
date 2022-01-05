@@ -5,7 +5,6 @@ import com.poc.algafood.exception.EntidadeEmUsoException;
 import com.poc.algafood.exception.EntidadeJaCadastradaException;
 import com.poc.algafood.exception.EntidadeNaoCadastradaException;
 import com.poc.algafood.service.CozinhaService;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
